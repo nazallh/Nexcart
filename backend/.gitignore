@@ -1,0 +1,20 @@
+# run this in nexcart root folder
+cat > .gitignore << 'EOF'
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables (NEVER push this)
+backend/.env
+
+# Build
+frontend/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+EOF
