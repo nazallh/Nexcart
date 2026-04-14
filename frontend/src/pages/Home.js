@@ -5,11 +5,30 @@ import ProductCard from '../components/common/ProductCard';
 import './Home.css';
 
 export default function Home() {
-  const [featured, setFeatured] = useState([]);
+  const [featured, setFeatured] = useState([]); // ✅ always array
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.get('/products/featured').then(r => setFeatured(r.data)).catch(() => {}).finally(() => setLoading(false));
+    API.get('/products/featured')
+      .then((r) => {
+        const data = r.data;
+
+        // ✅ Handle all possible response formats
+        if (Array.isArray(data)) {
+          setFeatured(data);
+        } else if (Array.isArray(data?.products)) {
+          setFeatured(data.products);
+        } else if (Array.isArray(data?.data)) {
+          setFeatured(data.data);
+        } else {
+          setFeatured([]); // fallback
+        }
+      })
+      .catch((err) => {
+        console.error("API ERROR:", err);
+        setFeatured([]); // prevent crash
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const categories = [
@@ -32,7 +51,9 @@ export default function Home() {
             Shop the <span className="gradient-text">Future</span><br />
             with <span className="gradient-text">NexCart</span>
           </h1>
-          <p className="hero-sub">Discover millions of products at unbeatable prices. Fast delivery, secure payments, and hassle-free returns.</p>
+          <p className="hero-sub">
+            Discover millions of products at unbeatable prices. Fast delivery, secure payments, and hassle-free returns.
+          </p>
           <div className="hero-actions">
             <Link to="/products" className="btn btn-primary btn-lg">🛍️ Shop Now</Link>
             <Link to="/products?featured=true" className="btn btn-outline btn-lg">✨ View Deals</Link>
@@ -52,12 +73,20 @@ export default function Home() {
       <section className="section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Shop by <span className="gradient-text">Category</span></h2>
+            <h2 className="section-title">
+              Shop by <span className="gradient-text">Category</span>
+            </h2>
             <Link to="/products" className="see-all">See all →</Link>
           </div>
+
           <div className="categories-grid">
             {categories.map(cat => (
-              <Link key={cat.name} to={`/products?category=${cat.name}`} className="cat-card" style={{ '--cat-color': cat.color }}>
+              <Link
+                key={cat.name}
+                to={`/products?category=${cat.name}`}
+                className="cat-card"
+                style={{ '--cat-color': cat.color }}
+              >
                 <span className="cat-icon">{cat.icon}</span>
                 <span className="cat-name">{cat.name}</span>
               </Link>
@@ -70,32 +99,43 @@ export default function Home() {
       <section className="section" style={{ background: '#0d0d14' }}>
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Featured <span className="gradient-text">Products</span></h2>
+            <h2 className="section-title">
+              Featured <span className="gradient-text">Products</span>
+            </h2>
             <Link to="/products" className="see-all">View all →</Link>
           </div>
+
           {loading ? (
-            <div className="loading-center"><div className="spinner" /></div>
-          ) : featured.length > 0 ? (
+            <div className="loading-center">
+              <div className="spinner" />
+            </div>
+          ) : Array.isArray(featured) && featured.length > 0 ? (
             <div className="products-grid">
-              {featured.map(p => <ProductCard key={p._id} product={p} />)}
+              {featured.map(p => (
+                <ProductCard key={p._id} product={p} />
+              ))}
             </div>
           ) : (
             <div className="empty-state">
               <div style={{ fontSize: 48, marginBottom: 12 }}>🛍️</div>
-              <p style={{ color: '#6b6b82' }}>No featured products yet. Add some from the backend!</p>
-              <Link to="/products" className="btn btn-primary" style={{ marginTop: 16 }}>Browse All Products</Link>
+              <p style={{ color: '#6b6b82' }}>
+                No featured products yet. Add some from the backend!
+              </p>
+              <Link to="/products" className="btn btn-primary" style={{ marginTop: 16 }}>
+                Browse All Products
+              </Link>
             </div>
           )}
         </div>
       </section>
 
-      {/* Features banner */}
+      {/* Features */}
       <section className="section features-section">
         <div className="container">
           <div className="features-grid">
             {[
               { icon: '🚚', title: 'Free Delivery', sub: 'On orders above ₹499' },
-              { icon: '🔒', title: 'Secure Payment', sub: 'Razorpay protected' },
+              { icon: '🔒', title: 'Secure Payment', sub: 'Protected checkout' },
               { icon: '↩️', title: 'Easy Returns', sub: '7-day return policy' },
               { icon: '💬', title: '24/7 Support', sub: 'Always here to help' },
             ].map(f => (
